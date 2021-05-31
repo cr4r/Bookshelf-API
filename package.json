@@ -1,15 +1,15 @@
 {
-    "name": "projek-2",
+    "name": "Bookshelf-API",
     "version": "1.0.0",
     "description": "",
-    "main": "server.js",
+    "main": "nodemon ./src/server.js",
     "scripts": {
         "prod": "NODE_ENV=production node ./src/server.js",
         "dev": "nodemon ./src/server.js",
         "start": "nodemon ./src/server.js"
     },
     "keywords": [],
-    "author": "",
+    "author": "Ahmad Fatchurrachman",
     "license": "ISC",
     "devDependencies": {
         "nodemon": "^2.0.7"

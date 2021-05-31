@@ -1,5 +1,5 @@
 const { nanoid } = require('nanoid')
-const notes = require('./notes');
+const books = require('./books');
 
 /*
 {
@@ -14,28 +14,49 @@ const notes = require('./notes');
 }
 */
 
-//POST
-const addNoteHandler = (request, h) => {
-    const {
+//POST //Done
+const addBooksHandler = (request, h) => {
+    let {
         name,
+        publisher,
         year,
         author,
         summary,
-        publisher,
         pageCount,
         readPage,
+        reading
     } = request.payload;
 
     const id = nanoid(16);
-    let reading = false;
+    let finished = false;
 
     const insertedAt = new Date().toISOString();
     const updatedAt = insertedAt;
     if (pageCount === readPage) {
-        reading = true
+        finished = true
     };
 
-    const newNote = {
+    if (!name) {
+        const response = h.response({
+            status: 'fail',
+            message: 'Gagal menambahkan buku. Mohon isi nama buku',
+        });
+
+        response.code(400);
+        return response;
+    };
+
+    if (readPage > pageCount) {
+        const response = h.response({
+            status: 'fail',
+            message: 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount',
+        });
+
+        response.code(400);
+        return response;
+    };
+
+    const newBook = {
         id,
         name,
         year,
@@ -45,109 +66,174 @@ const addNoteHandler = (request, h) => {
         pageCount,
         readPage,
         reading,
+        finished,
         insertedAt,
         updatedAt
     };
 
-    notes.push(newNote);
+    books.push(newBook);
 
-
-
-    // const isSuccess = name;
-    // if (isSuccess) {
-    //     const response = h.response({
-    //         status: 'success',
-    //         message: 'Catatan berhasil ditambahkan',
-    //         data: {
-    //             noteId: id,
-    //             title,
-    //             body,
-    //             tags
-    //         },
-    //     });
-    //     response.header('Access-Control-Allow-Origin', '*');
-    //     response.code(201);
-    //     return response;
-    // }
+    const isSuccess = books.filter((book) => book.id === id).length > 0;
+    if (isSuccess) {
+        const response = h.response({
+            status: 'success',
+            message: 'Buku berhasil ditambahkan',
+            data: {
+                bookId: id,
+            },
+        });
+        response.header('Access-Control-Allow-Origin', '*');
+        response.code(201);
+        return response;
+    }
 
     const response = h.response({
         status: 'fail',
-        message: 'Catatan gagal ditambahkan',
+        message: 'Buku gagal ditambahkan',
     });
 
     response.code(500);
     return response;
 };
 
-const getAllNotesHandler = () => ({
-    status: 'success',
-    data: {
-        notes,
-    },
-});
+const filterData = async(datanya, model) => {
+    jadi = [];
+    await datanya.forEach((hasil) => { jadi.push({ id: hasil.id, name: hasil.name, publisher: hasil.publisher }) });
+    if (model) {
+        keyModel = Object.keys(model)[0];
+        if (keyModel) {
+            valueModel = Object.values(model)[0] || '';
+            if (valueModel === "1") {
+                nilai = true;
+            } else if (valueModel === "0") {
+                nilai = false;
+            } else {
+                nilai = valueModel.toLowerCase() || '';
+            };
 
-const getNoteByIdHandler = (request, h) => {
-    const { id } = request.params;
+            console.log(`wow ${nilai} nilai dari => `, keyModel)
+            abc = await jadi.filter(anu => anu[keyModel] === nilai);
+            console.log(`Database =>`, jadi, `\nKey Object => ${keyModel}`, `\nValue Object => ${nilai}`, '\nHasil Filter =>', abc, '\n\n')
+            return abc;
+        };
+    };
+    return jadi;
+};
 
-    const note = notes.filter((n) => n.id === id)[0];
+//GET ALL //Done
+const getAllBooksHandler = async(request, h) => {
+    hasilFilter = await filterData(books, request.query);
+    if (!hasilFilter) {
+        hasilFilter = [];
+    };
+    booknya = { books: hasilFilter };
+    // console.log("Dalam database", request.query, booknya, books)
+    const response = h.response({
+        status: 'success',
+        data: booknya
+    });
+    return response;
+};
 
-    if (note !== undefined) {
+//Get with ID Books //Done
+const getBooksByIdHandler = (request, h) => {
+    const { booksId } = request.params;
+    const book = books.filter((n) => n.id === booksId)[0];
+
+    if (book !== undefined) {
         return {
             status: 'success',
             data: {
-                note,
+                book,
             },
         };
     }
     const response = h.response({
         status: 'fail',
-        message: 'Catatan tidak ditemukan',
+        message: 'Buku tidak ditemukan',
     });
     response.code(404);
     return response;
 };
 
-const editNoteByIdHandler = (request, h) => {
-    const { id } = request.params;
+//PUT With ID BOOKs
+const editBooksByIdHandler = (request, h) => {
+    const { booksId } = request.params;
+    const {
+        name,
+        publisher
+    } = request.payload;
+    let {
+        year,
+        author,
+        summary,
+        pageCount,
+        readPage,
+        reading
+    } = request.payload;
 
-    const { title, tags, body } = request.payload;
+
+    if (!name) {
+        const response = h.response({
+            status: 'fail',
+            message: 'Gagal memperbarui buku. Mohon isi nama buku',
+        });
+
+        response.code(400);
+        return response;
+    };
+
+    if (readPage > pageCount) {
+        const response = h.response({
+            status: 'fail',
+            message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
+        });
+
+        response.code(400);
+        return response;
+    };
+
     const updatedAt = new Date().toISOString();
 
-    const index = notes.findIndex((note) => note.id === id);
+    const index = books.findIndex((book) => book.id === booksId);
 
     if (index !== -1) {
-        notes[index] = {
-            ...notes[index],
-            title,
-            tags,
-            body,
-            updatedAt,
+        books[index] = {
+            ...books[index],
+            name,
+            year,
+            author,
+            summary,
+            publisher,
+            pageCount,
+            readPage,
+            reading
         };
         const response = h.response({
             status: 'success',
-            message: 'Catatan berhasil diperbarui',
+            message: 'Buku berhasil diperbarui',
         });
         response.code(200);
         return response;
     }
     const response = h.response({
         status: 'fail',
-        message: 'Gagal memperbarui catatan. Id tidak ditemukan',
+        message: 'Gagal memperbarui buku. Id tidak ditemukan',
     });
     response.code(404);
     return response;
 };
 
-const deleteNoteByIdHandler = (request, h) => {
-    const { id } = request.params;
+const deleteBooksByIdHandler = (request, h) => {
+    const { booksId } = request.params;
 
-    const index = notes.findIndex((note) => note.id === id);
+    const index = books.findIndex((book) => book.id === booksId);
 
     if (index !== -1) {
-        notes.splice(index, 1);
+        books.splice(index, 1);
         const response = h.response({
             status: 'success',
-            message: 'Catatan berhasil dihapus',
+            message: 'Buku berhasil dihapus',
         });
         response.code(200);
         return response;
@@ -155,9 +241,9 @@ const deleteNoteByIdHandler = (request, h) => {
 
     const response = h.response({
         status: 'fail',
-        message: 'Catatan gagal dihapus. Id tidak ditemukan',
+        message: 'Buku gagal dihapus. Id tidak ditemukan',
     });
     response.code(404);
     return response;
 };
-module.exports = { addNoteHandler, getAllNotesHandler, getNoteByIdHandler, editNoteByIdHandler, deleteNoteByIdHandler };
+module.exports = { addBooksHandler, getAllBooksHandler, getBooksByIdHandler, editBooksByIdHandler, deleteBooksByIdHandler };
