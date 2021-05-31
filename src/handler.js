@@ -104,7 +104,7 @@ const filterData = async (datanya, model) => {
       } else {
         abc = await jadi.filter(anu => anu[keyModel].toLowerCase().indexOf(name) > -1)
       };
-
+      console.log(`Database =>`, jadi, `\nKey Object => ${keyModel}`, `\nValue Object => ${nilai}`, '\nHasil Filter =>', abc, '\n\n')
       return abc
     };
   };
