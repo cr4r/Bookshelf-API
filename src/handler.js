@@ -101,19 +101,22 @@ const filterData = async(datanya, model) => {
     await datanya.forEach((hasil) => { jadi.push({ id: hasil.id, name: hasil.name, publisher: hasil.publisher }) });
     if (model) {
         keyModel = Object.keys(model)[0];
+
         if (keyModel) {
-            valueModel = Object.values(model)[0] || '';
-            if (valueModel === "1") {
-                nilai = true;
-            } else if (valueModel === "0") {
-                nilai = false;
+            valueModel = Object.values(model)[0];
+            let { name, finished, reading } = model;
+
+            if (finished || reading) {
+                if (valueModel === "1") {
+                    nilai = true;
+                } else if (valueModel === "0") {
+                    nilai = false;
+                };
+                abc = await jadi.filter(anu => anu[keyModel] === nilai);
             } else {
-                nilai = valueModel.toLowerCase() || '';
+                abc = await jadi.filter(anu => anu[keyModel].toLowerCase().indexOf(anu[keyModel].toLowerCase()) > -1);
             };
 
-            console.log(`wow ${nilai} nilai dari => `, keyModel)
-            abc = await jadi.filter(anu => anu[keyModel] === nilai);
-            console.log(`Database =>`, jadi, `\nKey Object => ${keyModel}`, `\nValue Object => ${nilai}`, '\nHasil Filter =>', abc, '\n\n')
             return abc;
         };
     };
